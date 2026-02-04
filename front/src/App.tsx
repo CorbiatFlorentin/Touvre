@@ -9,7 +9,7 @@ function App() {
             <ul className="flex gap-8 text-[11px] uppercase tracking-[0.35em] text-slate-200/80">
               <li>
                 <a className="transition hover:text-slate-50" href="#newsletter">
-                  Newsletter
+                  Newsletter.
                 </a>
               </li>
               <li>
