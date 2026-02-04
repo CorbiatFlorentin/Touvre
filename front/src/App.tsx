@@ -4,6 +4,27 @@ function App() {
       <header className="hero relative overflow-hidden">
         <div className="hero-bg absolute inset-0" aria-hidden="true" />
         <div className="hero-overlay absolute inset-0" aria-hidden="true" />
+        <div className="absolute left-0 right-0 top-0 z-20">
+          <div className="mx-auto flex w-full max-w-6xl items-center justify-center px-6 pt-6">
+            <ul className="flex gap-8 text-[11px] uppercase tracking-[0.35em] text-slate-200/80">
+              <li>
+                <a className="transition hover:text-slate-50" href="#newsletter">
+                  Newsletter
+                </a>
+              </li>
+              <li>
+                <a className="transition hover:text-slate-50" href="#evenements">
+                  Evenements
+                </a>
+              </li>
+              <li>
+                <a className="transition hover:text-slate-50" href="#contact">
+                  Contact
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
         <div className="relative z-10 mx-auto flex min-h-[70vh] w-full max-w-6xl flex-col px-6 pb-20 pt-8">
           <nav className="flex items-start justify-between">
             <img
