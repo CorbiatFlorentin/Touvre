@@ -2,7 +2,36 @@ import Logo from './Logo'
 
 function MainSections() {
   return (
-    <main className="mx-auto w-full max-w-6xl px-6 pb-20 pt-12">
+    <main className="mx-auto w-full max-w-6xl px-6 pb-12 pt-12">
+      <section id="newsletter" className="mb-10">
+        <div className="rounded-3xl border border-slate-300/20 bg-slate-900/70 p-8 shadow-panel backdrop-blur">
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
+            Newsletter
+          </p>
+          <h2 className="mt-4 font-display text-3xl text-slate-50">
+            Recevez les actualités du comité.
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-slate-200/80">
+            Inscription prochainement disponible. Nous partagerons les dates
+            clés, les événements et les projets en cours.
+          </p>
+        </div>
+      </section>
+
+      <section id="contact" className="mb-12">
+        <div className="rounded-3xl border border-slate-300/20 bg-slate-900/70 p-8 shadow-panel backdrop-blur">
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-300/70">
+            Contact
+          </p>
+          <h2 className="mt-4 font-display text-3xl text-slate-50">
+            Parlons de vos besoins.
+          </h2>
+          <p className="mt-4 text-sm leading-relaxed text-slate-200/80">
+            Vous pouvez écrire au comité pour toute question ou collaboration.
+          </p>
+        </div>
+      </section>
+
       <section className="grid gap-6 md:grid-cols-2">
         <div className="rounded-3xl border border-slate-300/20 bg-slate-900/70 p-8 shadow-panel backdrop-blur">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-300/70">

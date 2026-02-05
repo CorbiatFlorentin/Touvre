@@ -1,7 +1,11 @@
 import Logo from './Logo'
 import Menu from './Menu'
 
-function Header() {
+type HeaderProps = {
+  onNavigate: (target: string) => void
+}
+
+function Header({ onNavigate }: HeaderProps) {
   return (
     <header className="relative overflow-hidden">
       <div
@@ -12,7 +16,7 @@ function Header() {
         className="absolute inset-0 bg-hero-overlay"
         aria-hidden="true"
       />
-      <Menu />
+      <Menu onNavigate={onNavigate} />
       <div className="relative z-10 mx-auto flex min-h-[70vh] w-full max-w-6xl flex-col px-6 pb-20 pt-8">
         <nav className="flex items-start justify-between">
           <Logo className="h-28 w-28 rounded-full border border-white/40 object-cover shadow-lg sm:h-36 sm:w-36" />
