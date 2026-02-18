@@ -1,4 +1,4 @@
-import Logo from './Logo'
+﻿import Logo from './Logo'
 import Menu from './Menu'
 
 type HeaderProps = {
@@ -9,11 +9,7 @@ function Header({ onNavigate }: HeaderProps) {
   return (
     <header className="relative overflow-hidden">
       <div
-        className="absolute inset-0 bg-hero bg-cover bg-center opacity-55 [filter:saturate(1.05)_contrast(1.08)] [transform:rotate(360deg)_scale(1.12)]"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 bg-hero-overlay"
+        className="absolute inset-0 bg-hero bg-cover bg-center [filter:saturate(1.05)_contrast(1.08)] [transform:rotate(360deg)_scale(1.12)]"
         aria-hidden="true"
       />
       <Menu onNavigate={onNavigate} />
@@ -27,7 +23,7 @@ function Header({ onNavigate }: HeaderProps) {
 
         <div className="mt-auto max-w-2xl pb-6">
           <h1 className="animate-reveal [animation-delay:150ms] mt-4 font-display text-4xl leading-tight text-slate-50 sm:text-5xl lg:text-6xl">
-            Bienvenue sur le site du comité de jumelage de Touvre. Nous sommes ravis de vous accueillir.
+            Bienvenue sur le site du comitÃ© de jumelage de Touvre. Nous sommes ravis de vous accueillir.
           </h1>
         </div>
       </div>
@@ -36,3 +32,5 @@ function Header({ onNavigate }: HeaderProps) {
 }
 
 export default Header
+
+
