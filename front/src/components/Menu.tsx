@@ -1,13 +1,14 @@
-type MenuProps = {
+﻿type MenuProps = {
   onNavigate: (target: string) => void
 }
 
 const menuItems = [
   { label: 'Newsletter', target: 'newsletter' },
   { label: 'Contact', target: 'contact' },
-  { label: 'Mentions légales', target: 'mentions' },
+  { label: 'Mentions legales', target: 'mentions' },
   { label: 'Association', target: 'association' },
-  { label: 'Événements', target: 'evenements' },
+  { label: 'Evenements', target: 'evenements' },
+  { label: 'Admin', target: 'admin-login' },
 ]
 
 function Menu({ onNavigate }: MenuProps) {
