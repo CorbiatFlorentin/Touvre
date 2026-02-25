@@ -14,10 +14,19 @@ function Header({ onNavigate }: HeaderProps) {
       />
       <Menu onNavigate={onNavigate} />
       <div className="relative z-10 mx-auto flex min-h-[70vh] w-full max-w-6xl flex-col px-6 pb-20 pt-8">
-        <nav className="flex items-start justify-between">
+        <nav className="flex items-start justify-between gap-4">
           <Logo className="h-28 w-28 rounded-full border border-white/40 object-cover shadow-lg sm:h-36 sm:w-36" />
-          <div className="text-xs uppercase tracking-[0.45em] text-slate-200/80">
-            Touvre
+          <div className="flex flex-col items-end gap-3">
+            <div className="text-xs uppercase tracking-[0.45em] text-slate-200/80">
+              Touvre
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigate('admin-login')}
+              className="rounded-full border border-white/40 bg-white/15 px-4 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-white transition hover:bg-white/30"
+            >
+              Connexion admin
+            </button>
           </div>
         </nav>
 

@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import Footer from './components/Footer'
 import Header from './components/Header'
 import MainSections from './components/MainSections'
@@ -21,43 +21,8 @@ type Registration = {
   createdAt: string
 }
 
-const michouiRegistrations: Registration[] = [
-  {
-    id: 1,
-    nom: 'Camille Roy',
-    email: 'camille.roy@example.com',
-    accompteVerser: true,
-    accompteMontant: 1500,
-    createdAt: '2026-02-10',
-  },
-  {
-    id: 2,
-    nom: 'Lucas Bernard',
-    email: 'lucas.bernard@example.com',
-    accompteVerser: false,
-    accompteMontant: null,
-    createdAt: '2026-02-12',
-  },
-]
-
-const videGrenierRegistrations: Registration[] = [
-  {
-    id: 1,
-    nom: 'Sophie Martin',
-    email: 'sophie.martin@example.com',
-    accompteVerser: true,
-    accompteMontant: 500,
-    createdAt: '2026-02-09',
-  },
-  {
-    id: 2,
-    nom: 'Hugo Petit',
-    email: 'hugo.petit@example.com',
-    accompteVerser: true,
-    accompteMontant: 700,
-    createdAt: '2026-02-11',
-  },
-]
+const API_BASE =
+  import.meta.env.VITE_API_URL?.toString() || 'http://localhost:3001'
 
 const getViewFromPath = (path: string): View => {
   if (path === '/admin') {
@@ -89,18 +54,66 @@ const getInitialView = (): View => {
 function EventRegistrationPage({
   title,
   onBack,
+  eventType,
 }: {
   title: string
   onBack: () => void
+  eventType: 'MICHOUI' | 'VIDE_GRENIER'
 }) {
+  const [nom, setNom] = useState('')
+  const [email, setEmail] = useState('')
   const [accompte, setAccompte] = useState(false)
   const [montant, setMontant] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
+    'idle'
+  )
+  const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
     if (!accompte) {
       setMontant('')
     }
   }, [accompte])
+
+  const handleSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      setStatus('loading')
+      setErrorMessage('')
+
+      try {
+        const response = await fetch(`${API_BASE}/api/inscriptions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nom,
+            email,
+            event: eventType,
+            accompteVerser: accompte,
+            accompteMontant: accompte ? montant : null,
+          }),
+        })
+
+        if (!response.ok) {
+          setStatus('error')
+          setErrorMessage(
+            "Impossible d'envoyer l'inscription. Verifiez les champs."
+          )
+          return
+        }
+
+        setStatus('success')
+        setNom('')
+        setEmail('')
+        setAccompte(false)
+        setMontant('')
+      } catch (error) {
+        setStatus('error')
+        setErrorMessage("Erreur reseau. Verifiez que l'API est demarree.")
+      }
+    },
+    [accompte, email, eventType, montant, nom]
+  )
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 pb-20 pt-20">
@@ -113,13 +126,16 @@ function EventRegistrationPage({
           Completez le formulaire pour vous inscrire a cet evenement.
         </p>
 
-        <form className="mt-6 grid gap-4">
+        <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
           <label className="flex flex-col gap-2 text-sm text-slate-200">
             Nom complet
             <input
               type="text"
               className="rounded-xl border border-slate-300/20 bg-slate-950/70 px-4 py-3 text-slate-50 outline-none transition focus:border-slate-200/60"
               placeholder="Votre nom"
+              value={nom}
+              onChange={(event) => setNom(event.target.value)}
+              required
             />
           </label>
           <label className="flex flex-col gap-2 text-sm text-slate-200">
@@ -128,6 +144,9 @@ function EventRegistrationPage({
               type="email"
               className="rounded-xl border border-slate-300/20 bg-slate-950/70 px-4 py-3 text-slate-50 outline-none transition focus:border-slate-200/60"
               placeholder="votre@email.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
             />
           </label>
           <label className="flex items-center gap-3 text-sm text-slate-200">
@@ -151,14 +170,24 @@ function EventRegistrationPage({
                 onChange={(event) => setMontant(event.target.value)}
                 className="rounded-xl border border-slate-300/20 bg-slate-950/70 px-4 py-3 text-slate-50 outline-none transition focus:border-slate-200/60"
                 placeholder="Montant de l'acompte (EUR)"
+                required={accompte}
               />
             </label>
+          )}
+          {status === 'success' && (
+            <p className="text-sm text-emerald-300">
+              Inscription envoyee. Merci.
+            </p>
+          )}
+          {status === 'error' && (
+            <p className="text-sm text-rose-300">{errorMessage}</p>
           )}
           <button
             type="submit"
             className="rounded-xl border border-slate-200/40 bg-slate-100 px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-900 transition hover:bg-white"
+            disabled={status === 'loading'}
           >
-            Envoyer l'inscription
+            {status === 'loading' ? 'Envoi en cours...' : "Envoyer l'inscription"}
           </button>
         </form>
 
@@ -178,11 +207,49 @@ function AdminLoginPage({
   onSuccess,
   onBack,
 }: {
-  onSuccess: () => void
+  onSuccess: (token: string) => void
   onBack: () => void
 }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+
+  const handleSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      setStatus('loading')
+      setErrorMessage('')
+
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        })
+
+        if (!response.ok) {
+          setStatus('error')
+          setErrorMessage('Identifiants invalides.')
+          return
+        }
+
+        const data = await response.json()
+        if (!data?.token) {
+          setStatus('error')
+          setErrorMessage('Connexion impossible.')
+          return
+        }
+
+        setStatus('idle')
+        onSuccess(data.token)
+      } catch (error) {
+        setStatus('error')
+        setErrorMessage("Erreur reseau. Verifiez que l'API est demarree.")
+      }
+    },
+    [email, onSuccess, password]
+  )
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 pb-20 pt-20">
@@ -197,13 +264,7 @@ function AdminLoginPage({
           Acces reserve au comite. Saisissez vos identifiants.
         </p>
 
-        <form
-          className="mt-6 grid gap-4"
-          onSubmit={(event) => {
-            event.preventDefault()
-            onSuccess()
-          }}
-        >
+        <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
           <label className="flex flex-col gap-2 text-sm text-slate-200">
             Email
             <input
@@ -229,9 +290,13 @@ function AdminLoginPage({
           <button
             type="submit"
             className="rounded-xl border border-slate-200/40 bg-slate-100 px-5 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-slate-900 transition hover:bg-white"
+            disabled={status === 'loading'}
           >
-            Se connecter
+            {status === 'loading' ? 'Connexion...' : 'Se connecter'}
           </button>
+          {status === 'error' && (
+            <p className="text-sm text-rose-300">{errorMessage}</p>
+          )}
         </form>
 
         <button
@@ -403,7 +468,19 @@ function EventsPage({ onNavigate }: { onNavigate: (target: string) => void }) {
 
 function App() {
   const [view, setView] = useState<View>(() => getInitialView())
-  const [isAdminAuthed, setIsAdminAuthed] = useState(false)
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window === 'undefined') {
+      return null
+    }
+    return localStorage.getItem('admin_token')
+  })
+  const [isAdminAuthed, setIsAdminAuthed] = useState(Boolean(token))
+  const [michouiRegistrations, setMichouiRegistrations] = useState<
+    Registration[]
+  >([])
+  const [videGrenierRegistrations, setVideGrenierRegistrations] = useState<
+    Registration[]
+  >([])
 
   useEffect(() => {
     const handlePopState = () => {
@@ -422,6 +499,38 @@ function App() {
       window.history.pushState({}, '', getPathFromView('admin-login'))
     }
   }, [view, isAdminAuthed])
+
+  useEffect(() => {
+    setIsAdminAuthed(Boolean(token))
+  }, [token])
+
+  const fetchRegistrations = useCallback(async (authToken: string) => {
+    const [michouiResponse, videGrenierResponse] = await Promise.all([
+      fetch(`${API_BASE}/api/inscriptions?event=MICHOUI`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      }),
+      fetch(`${API_BASE}/api/inscriptions?event=VIDE_GRENIER`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      }),
+    ])
+
+    if (!michouiResponse.ok || !videGrenierResponse.ok) {
+      return
+    }
+
+    const [michouiData, videGrenierData] = await Promise.all([
+      michouiResponse.json(),
+      videGrenierResponse.json(),
+    ])
+    setMichouiRegistrations(michouiData)
+    setVideGrenierRegistrations(videGrenierData)
+  }, [])
+
+  useEffect(() => {
+    if (view === 'admin' && token) {
+      fetchRegistrations(token)
+    }
+  }, [fetchRegistrations, token, view])
 
   const setViewWithRoute = useCallback((nextView: View) => {
     setView(nextView)
@@ -470,13 +579,22 @@ function App() {
     [setViewWithRoute]
   )
 
-  const handleAdminLogin = useCallback(() => {
-    setIsAdminAuthed(true)
-    setViewWithRoute('admin')
-  }, [setViewWithRoute])
+  const handleAdminLoginWithToken = useCallback(
+    (authToken: string) => {
+      setToken(authToken)
+      localStorage.setItem('admin_token', authToken)
+      setIsAdminAuthed(true)
+      setViewWithRoute('admin')
+    },
+    [setViewWithRoute]
+  )
 
   const handleAdminLogout = useCallback(() => {
     setIsAdminAuthed(false)
+    setToken(null)
+    localStorage.removeItem('admin_token')
+    setMichouiRegistrations([])
+    setVideGrenierRegistrations([])
     setViewWithRoute('admin-login')
   }, [setViewWithRoute])
 
@@ -509,17 +627,19 @@ function App() {
         <EventRegistrationPage
           title="Inscription au vide grenier de Touvre"
           onBack={() => setViewWithRoute('evenements')}
+          eventType="VIDE_GRENIER"
         />
       )}
       {view === 'inscription-michoui' && (
         <EventRegistrationPage
           title="Inscription au michoui de Touvre"
           onBack={() => setViewWithRoute('evenements')}
+          eventType="MICHOUI"
         />
       )}
       {view === 'admin-login' && (
         <AdminLoginPage
-          onSuccess={handleAdminLogin}
+          onSuccess={handleAdminLoginWithToken}
           onBack={() => setViewWithRoute('home')}
         />
       )}
