@@ -16,6 +16,7 @@ model Inscription {
   id              Int      @id @default(autoincrement())
   nom             String
   email           String
+  phoneNumber     String?  @map("phone_number")
   event           EventType
   accompteVerser  Boolean  @default(false) @map("accompte_verser")
   accompteMontant Int?

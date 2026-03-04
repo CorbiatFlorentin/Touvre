@@ -16,6 +16,7 @@ type Registration = {
   id: number
   nom: string
   email: string
+  phoneNumber?: string | null
   accompteVerser: boolean
   accompteMontant: number | null
   createdAt: string
@@ -62,18 +63,13 @@ function EventRegistrationPage({
 }) {
   const [nom, setNom] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [accompte, setAccompte] = useState(false)
   const [montant, setMontant] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
     'idle'
   )
   const [errorMessage, setErrorMessage] = useState('')
-
-  useEffect(() => {
-    if (!accompte) {
-      setMontant('')
-    }
-  }, [accompte])
 
   const handleSubmit = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
@@ -88,6 +84,7 @@ function EventRegistrationPage({
           body: JSON.stringify({
             nom,
             email,
+            phoneNumber: phone || null,
             event: eventType,
             accompteVerser: accompte,
             accompteMontant: accompte ? montant : null,
@@ -105,14 +102,15 @@ function EventRegistrationPage({
         setStatus('success')
         setNom('')
         setEmail('')
+        setPhone('')
         setAccompte(false)
         setMontant('')
-      } catch (error) {
+      } catch {
         setStatus('error')
         setErrorMessage("Erreur reseau. Verifiez que l'API est demarree.")
       }
     },
-    [accompte, email, eventType, montant, nom]
+    [accompte, email, eventType, montant, nom, phone]
   )
 
   return (
@@ -149,12 +147,29 @@ function EventRegistrationPage({
               required
             />
           </label>
+          <label className="flex flex-col gap-2 text-sm text-slate-200">
+            Telephone
+            <input
+              type="tel"
+              inputMode="numeric"
+              className="rounded-xl border border-slate-300/20 bg-slate-950/70 px-4 py-3 text-slate-50 outline-none transition focus:border-slate-200/60"
+              placeholder="0600000000"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+            />
+          </label>
           <label className="flex items-center gap-3 text-sm text-slate-200">
             <input
               type="checkbox"
               className="h-4 w-4 rounded border border-slate-300/40 bg-slate-950/70"
               checked={accompte}
-              onChange={(event) => setAccompte(event.target.checked)}
+              onChange={(event) => {
+                const checked = event.target.checked
+                setAccompte(checked)
+                if (!checked) {
+                  setMontant('')
+                }
+              }}
             />
             Accompte
           </label>
@@ -243,7 +258,7 @@ function AdminLoginPage({
 
         setStatus('idle')
         onSuccess(data.token)
-      } catch (error) {
+      } catch {
         setStatus('error')
         setErrorMessage("Erreur reseau. Verifiez que l'API est demarree.")
       }
@@ -332,6 +347,7 @@ function AdminTable({
             <tr>
               <th className="pb-3">Nom</th>
               <th className="pb-3">Email</th>
+              <th className="pb-3">Telephone</th>
               <th className="pb-3">Accompte</th>
               <th className="pb-3">Montant</th>
               <th className="pb-3">Date</th>
@@ -340,7 +356,7 @@ function AdminTable({
           <tbody className="divide-y divide-slate-300/10">
             {entries.length === 0 && (
               <tr>
-                <td className="py-4 text-slate-300/80" colSpan={5}>
+                <td className="py-4 text-slate-300/80" colSpan={6}>
                   Aucun inscrit pour le moment.
                 </td>
               </tr>
@@ -349,6 +365,9 @@ function AdminTable({
               <tr key={`${title}-${entry.id}`}>
                 <td className="py-3 font-medium text-slate-50">{entry.nom}</td>
                 <td className="py-3 text-slate-200/80">{entry.email}</td>
+                <td className="py-3 text-slate-200/80">
+                  {entry.phoneNumber || '-'}
+                </td>
                 <td className="py-3">
                   {entry.accompteVerser ? 'Oui' : 'Non'}
                 </td>

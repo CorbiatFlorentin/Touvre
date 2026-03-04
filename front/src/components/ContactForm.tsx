@@ -21,6 +21,16 @@ function ContactForm() {
         />
       </label>
 
+      <label className="flex flex-col gap-2 text-sm text-slate-200 sm:col-span-1">
+        Telephone
+        <input
+          type="tel"
+          name="phone"
+          className="rounded-xl border border-slate-300/20 bg-slate-950/70 px-4 py-3 text-slate-50 outline-none transition focus:border-slate-200/60"
+          placeholder="06xxxxxxxx"
+        />
+      </label>
+
       <label className="flex flex-col gap-2 text-sm text-slate-200 sm:col-span-2">
         Message
         <textarea

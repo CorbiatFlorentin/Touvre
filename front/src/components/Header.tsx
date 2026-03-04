@@ -32,7 +32,7 @@ function Header({ onNavigate }: HeaderProps) {
 
         <div className="mt-auto max-w-2xl pb-6">
           <h1 className="animate-reveal [animation-delay:150ms] mt-4 font-display text-4xl leading-tight text-slate-50 sm:text-5xl lg:text-6xl">
-            Bienvenue sur le site du comitÃ© de jumelage de Touvre. Nous sommes ravis de vous accueillir.
+            Bienvenue sur le site du comité des fêtes de Touvre. Nous sommes ravis de vous accueillir.
           </h1>
         </div>
       </div>

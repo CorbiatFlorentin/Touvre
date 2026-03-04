@@ -82,6 +82,7 @@ app.post('/api/inscriptions', async (req, res) => {
   const {
     nom,
     email,
+    phoneNumber = null,
     event,
     accompteVerser = false,
     accompteMontant = null,
@@ -95,6 +96,13 @@ app.post('/api/inscriptions', async (req, res) => {
   }
   if (event !== 'MICHOUI' && event !== 'VIDE_GRENIER') {
     return res.status(400).json({ error: 'invalid_event' })
+  }
+  if (phoneNumber != null) {
+    // ensure it's at most 20 digits and only numbers
+    const trimmed = String(phoneNumber).trim()
+    if (!/^[0-9]{1,20}$/.test(trimmed)) {
+      return res.status(400).json({ error: 'invalid_phone' })
+    }
   }
 
   let montantValue = null
@@ -110,6 +118,7 @@ app.post('/api/inscriptions', async (req, res) => {
     data: {
       nom: String(nom).trim(),
       email: String(email).trim(),
+      phoneNumber: phoneNumber != null ? String(phoneNumber).trim() : null,
       event,
       accompteVerser: Boolean(accompteVerser),
       accompteMontant: montantValue,
