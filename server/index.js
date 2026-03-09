@@ -79,29 +79,39 @@ app.post('/api/auth/login', async (req, res) => {
 })
 
 app.post('/api/inscriptions', async (req, res) => {
-  const {
-    nom,
-    email,
-    phoneNumber = null,
-    event,
-    accompteVerser = false,
-    accompteMontant = null,
-  } = req.body || {}
+  const validated = validateInscriptionPayload(req.body || {})
+  if (validated.error) {
+    return res.status(400).json({ error: validated.error })
+  }
 
+  const created = await prisma.inscription.create({
+    data: validated.data,
+  })
+
+  return res.status(201).json(created)
+})
+
+const validateInscriptionPayload = ({
+  nom,
+  email,
+  phoneNumber = null,
+  event,
+  accompteVerser = false,
+  accompteMontant = null,
+}) => {
   if (!nom || !email || !event) {
-    return res.status(400).json({ error: 'missing_fields' })
+    return { error: 'missing_fields' }
   }
   if (!isValidEmail(email)) {
-    return res.status(400).json({ error: 'invalid_email' })
+    return { error: 'invalid_email' }
   }
   if (event !== 'MICHOUI' && event !== 'VIDE_GRENIER') {
-    return res.status(400).json({ error: 'invalid_event' })
+    return { error: 'invalid_event' }
   }
   if (phoneNumber != null) {
-    // ensure it's at most 20 digits and only numbers
     const trimmed = String(phoneNumber).trim()
     if (!/^[0-9]{1,20}$/.test(trimmed)) {
-      return res.status(400).json({ error: 'invalid_phone' })
+      return { error: 'invalid_phone' }
     }
   }
 
@@ -109,12 +119,12 @@ app.post('/api/inscriptions', async (req, res) => {
   if (accompteVerser) {
     const parsed = Number(accompteMontant)
     if (Number.isNaN(parsed) || parsed < 0) {
-      return res.status(400).json({ error: 'invalid_accompte' })
+      return { error: 'invalid_accompte' }
     }
     montantValue = Math.round(parsed)
   }
 
-  const created = await prisma.inscription.create({
+  return {
     data: {
       nom: String(nom).trim(),
       email: String(email).trim(),
@@ -123,10 +133,8 @@ app.post('/api/inscriptions', async (req, res) => {
       accompteVerser: Boolean(accompteVerser),
       accompteMontant: montantValue,
     },
-  })
-
-  return res.status(201).json(created)
-})
+  }
+}
 
 app.get('/api/inscriptions', requireAuth, async (req, res) => {
   const event = req.query.event
@@ -144,6 +152,50 @@ app.get('/api/inscriptions', requireAuth, async (req, res) => {
   })
 
   return res.json(entries)
+})
+
+app.put('/api/inscriptions/:id', requireAuth, async (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'invalid_id' })
+  }
+
+  const validated = validateInscriptionPayload(req.body || {})
+  if (validated.error) {
+    return res.status(400).json({ error: validated.error })
+  }
+
+  try {
+    const updated = await prisma.inscription.update({
+      where: { id },
+      data: validated.data,
+    })
+    return res.json(updated)
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'not_found' })
+    }
+    return res.status(500).json({ error: 'server_error' })
+  }
+})
+
+app.delete('/api/inscriptions/:id', requireAuth, async (req, res) => {
+  const id = Number(req.params.id)
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: 'invalid_id' })
+  }
+
+  try {
+    await prisma.inscription.delete({
+      where: { id },
+    })
+    return res.status(204).send()
+  } catch (error) {
+    if (error.code === 'P2025') {
+      return res.status(404).json({ error: 'not_found' })
+    }
+    return res.status(500).json({ error: 'server_error' })
+  }
 })
 
 app.listen(PORT, () => {

@@ -13,13 +13,10 @@ function Header({ onNavigate }: HeaderProps) {
         aria-hidden="true"
       />
       <Menu onNavigate={onNavigate} />
-      <div className="relative z-10 mx-auto flex min-h-[70vh] w-full max-w-6xl flex-col px-6 pb-20 pt-8">
-        <nav className="flex items-start justify-between gap-4">
-          <Logo className="h-28 w-28 rounded-full border border-white/40 object-cover shadow-lg sm:h-36 sm:w-36" />
-          <div className="flex flex-col items-end gap-3">
-            <div className="text-xs uppercase tracking-[0.45em] text-slate-200/80">
-              Touvre
-            </div>
+      <div className="relative z-10 mx-auto flex min-h-[70vh] w-full max-w-6xl flex-col px-6 pb-20 pt-16 sm:pt-8">
+        <nav className="flex items-start justify-between gap-6">
+          <Logo className="-ml-12 h-28 w-28 rounded-full border border-white/40 object-cover shadow-lg sm:-ml-20 sm:h-36 sm:w-36" />
+          <div className="-mr-14 flex flex-col items-end gap-3 rounded-2xl border border-white/20 bg-slate-950/45 px-4 py-3 backdrop-blur-md sm:-mr50 lg:-mr-40">
             <button
               type="button"
               onClick={() => onNavigate('admin-login')}
@@ -30,7 +27,7 @@ function Header({ onNavigate }: HeaderProps) {
           </div>
         </nav>
 
-        <div className="mt-auto max-w-2xl pb-6">
+        <div className="mt-auto max-w-2xl rounded-2xl border border-white/15 bg-slate-950/50 p-5 pb-6 backdrop-blur-md">
           <h1 className="animate-reveal [animation-delay:150ms] mt-4 font-display text-4xl leading-tight text-slate-50 sm:text-5xl lg:text-6xl">
             Bienvenue sur le site du comité des fêtes de Touvre. Nous sommes ravis de vous accueillir.
           </h1>
@@ -41,5 +38,6 @@ function Header({ onNavigate }: HeaderProps) {
 }
 
 export default Header
+
 
 
