@@ -43,7 +43,7 @@ function App() {
       )}
       {view === 'inscription-mechoui' && (
         <EventRegistrationPage
-          title="Inscription au mechoui de Touvre"
+          title="Inscription au Méchoui de Touvre"
           onBack={() => setViewWithRoute('evenements')}
           eventType="MICHOUI"
         />

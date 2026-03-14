@@ -1,15 +1,21 @@
-import type { EventType, Registration, RegistrationUpdatePayload } from '../models/app'
+import type {
+  EventType,
+  MechouiParticipantInput,
+  Registration,
+  RegistrationUpdatePayload,
+} from '../models/app'
 
 const API_BASE =
   import.meta.env.VITE_API_URL?.toString() || 'http://localhost:3001'
 
 export async function createRegistration(payload: {
-  nom: string
+  nom?: string
   email: string
   phoneNumber: string | null
   event: EventType
   accompteVerser: boolean
   accompteMontant: string | null
+  participants?: MechouiParticipantInput[]
 }) {
   return fetch(`${API_BASE}/api/inscriptions`, {
     method: 'POST',

@@ -35,9 +35,11 @@ function AdminTable({
     setEditingId(entry.id)
     setDraft({
       nom: entry.nom,
+      prenom: entry.prenom,
       email: entry.email,
       phoneNumber: entry.phoneNumber || '',
       event: entry.event,
+      tarif: entry.tarif,
       accompteVerser: entry.accompteVerser,
       accompteMontant: entry.accompteMontant,
     })
@@ -76,9 +78,12 @@ function AdminTable({
         <table className="w-full table-fixed text-left text-sm text-slate-100">
           <thead className="text-xs uppercase tracking-[0.2em] text-slate-300">
             <tr>
+              <th className="pb-3">Formulaire</th>
               <th className="pb-3">Nom</th>
+              <th className="pb-3">Prenom</th>
               <th className="pb-3">Email</th>
               <th className="pb-3">Telephone</th>
+              <th className="pb-3">Tarif</th>
               <th className="pb-3">Accompte</th>
               <th className="pb-3">Montant</th>
               <th className="pb-3">Date</th>
@@ -88,13 +93,16 @@ function AdminTable({
           <tbody className="divide-y divide-slate-300/10">
             {entries.length === 0 && (
               <tr>
-                <td className="py-4 text-slate-300/80" colSpan={7}>
+                <td className="py-4 text-slate-300/80" colSpan={10}>
                   Aucun inscrit pour le moment.
                 </td>
               </tr>
             )}
             {entries.map((entry) => (
               <tr key={`${title}-${entry.id}`}>
+                <td className="py-3 break-words text-slate-200/80">
+                  {entry.formulaireId ?? '-'}
+                </td>
                 <td className="py-3 break-words font-medium text-slate-50">
                   {editingId === entry.id && draft ? (
                     <input
@@ -107,6 +115,21 @@ function AdminTable({
                     />
                   ) : (
                     entry.nom
+                  )}
+                </td>
+                <td className="py-3 break-words text-slate-200/80">
+                  {editingId === entry.id && draft ? (
+                    <input
+                      type="text"
+                      value={draft.prenom || ''}
+                      disabled={draft.event !== 'MICHOUI'}
+                      onChange={(event) =>
+                        setDraft({ ...draft, prenom: event.target.value })
+                      }
+                      className="w-full rounded-md border border-slate-300/20 bg-slate-950/70 px-2 py-1 text-slate-50 outline-none disabled:opacity-50"
+                    />
+                  ) : (
+                    entry.prenom || '-'
                   )}
                 </td>
                 <td className="py-3 break-words text-slate-200/80">
@@ -136,6 +159,38 @@ function AdminTable({
                     />
                   ) : (
                     entry.phoneNumber || '-'
+                  )}
+                </td>
+                <td className="py-3 break-words text-slate-200/80">
+                  {editingId === entry.id && draft ? (
+                    <select
+                      value={draft.tarif || ''}
+                      disabled={draft.event !== 'MICHOUI'}
+                      onChange={(event) =>
+                        setDraft({
+                          ...draft,
+                          tarif: event.target.value
+                            ? (event.target.value as RegistrationUpdatePayload['tarif'])
+                            : null,
+                        })
+                      }
+                      className="w-full rounded-md border border-slate-300/20 bg-slate-950/70 px-2 py-1 text-slate-50 outline-none disabled:opacity-50"
+                    >
+                      <option value="">-</option>
+                      <option value="ADULTE">Adulte</option>
+                      <option value="ENFANT_MOINS_12">Enfant -12 ans</option>
+                      <option value="ENFANT_MOINS_3">
+                        Enfant -3 ans gratuit
+                      </option>
+                    </select>
+                  ) : entry.tarif === 'ADULTE' ? (
+                    'Adulte'
+                  ) : entry.tarif === 'ENFANT_MOINS_12' ? (
+                    'Enfant -12 ans'
+                  ) : entry.tarif === 'ENFANT_MOINS_3' ? (
+                    'Enfant -3 ans gratuit'
+                  ) : (
+                    '-'
                   )}
                 </td>
                 <td className="py-3">

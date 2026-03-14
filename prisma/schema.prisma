@@ -12,17 +12,27 @@ enum EventType {
   VIDE_GRENIER
 }
 
+enum TarifType {
+  ADULTE
+  ENFANT_MOINS_12
+  ENFANT_MOINS_3
+}
+
 model Inscription {
   id              Int      @id @default(autoincrement())
+  formulaireId    Int?     @map("formulaire_id")
   nom             String
+  prenom          String?
   email           String
   phoneNumber     String?  @map("phone_number")
   event           EventType
+  tarif           TarifType?
   accompteVerser  Boolean  @default(false) @map("accompte_verser")
   accompteMontant Int?
   createdAt       DateTime @default(now())
 
   @@index([event])
+  @@index([formulaireId])
   @@map("inscription")
 }
 

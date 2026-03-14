@@ -24,6 +24,9 @@ const isValidEmail = (value) => {
   return typeof value === 'string' && value.includes('@') && value.includes('.')
 }
 
+const VALID_EVENTS = ['MICHOUI', 'VIDE_GRENIER']
+const VALID_TARIFS = ['ADULTE', 'ENFANT_MOINS_12', 'ENFANT_MOINS_3']
+
 const requireAuth = (req, res, next) => {
   const header = req.headers.authorization || ''
   const token = header.startsWith('Bearer ') ? header.slice(7) : null
@@ -79,7 +82,40 @@ app.post('/api/auth/login', async (req, res) => {
 })
 
 app.post('/api/inscriptions', async (req, res) => {
-  const validated = validateInscriptionPayload(req.body || {})
+  const payload = req.body || {}
+
+  if (payload.event === 'MICHOUI' && Array.isArray(payload.participants)) {
+    const validated = validateMechouiPayload(payload)
+    if (validated.error) {
+      return res.status(400).json({ error: validated.error })
+    }
+
+    const created = await prisma.$transaction(async (tx) => {
+      const lastGroup = await tx.inscription.findFirst({
+        where: {
+          event: 'MICHOUI',
+          NOT: { formulaireId: null },
+        },
+        orderBy: { formulaireId: 'desc' },
+      })
+      const formulaireId = (lastGroup?.formulaireId || 0) + 1
+
+      return Promise.all(
+        validated.data.map((entry) =>
+          tx.inscription.create({
+            data: {
+              ...entry,
+              formulaireId,
+            },
+          })
+        )
+      )
+    })
+
+    return res.status(201).json(created)
+  }
+
+  const validated = validateInscriptionPayload(payload)
   if (validated.error) {
     return res.status(400).json({ error: validated.error })
   }
@@ -91,21 +127,20 @@ app.post('/api/inscriptions', async (req, res) => {
   return res.status(201).json(created)
 })
 
-const validateInscriptionPayload = ({
-  nom,
+const validateSharedFields = ({
   email,
   phoneNumber = null,
   event,
   accompteVerser = false,
   accompteMontant = null,
 }) => {
-  if (!nom || !email || !event) {
+  if (!email || !event) {
     return { error: 'missing_fields' }
   }
   if (!isValidEmail(email)) {
     return { error: 'invalid_email' }
   }
-  if (event !== 'MICHOUI' && event !== 'VIDE_GRENIER') {
+  if (!VALID_EVENTS.includes(event)) {
     return { error: 'invalid_event' }
   }
   if (phoneNumber != null) {
@@ -126,7 +161,6 @@ const validateInscriptionPayload = ({
 
   return {
     data: {
-      nom: String(nom).trim(),
       email: String(email).trim(),
       phoneNumber: phoneNumber != null ? String(phoneNumber).trim() : null,
       event,
@@ -136,11 +170,77 @@ const validateInscriptionPayload = ({
   }
 }
 
+const validateInscriptionPayload = ({
+  nom,
+  prenom = null,
+  tarif = null,
+  ...sharedFields
+}) => {
+  const shared = validateSharedFields(sharedFields)
+  if (shared.error) {
+    return shared
+  }
+
+  if (!nom) {
+    return { error: 'missing_fields' }
+  }
+
+  if (shared.data.event === 'MICHOUI') {
+    if (!prenom || !VALID_TARIFS.includes(tarif)) {
+      return { error: 'invalid_mechoui_participant' }
+    }
+  }
+
+  return {
+    data: {
+      ...shared.data,
+      nom: String(nom).trim(),
+      prenom:
+        shared.data.event === 'MICHOUI' ? String(prenom).trim() : null,
+      tarif: shared.data.event === 'MICHOUI' ? tarif : null,
+    },
+  }
+}
+
+const validateMechouiPayload = ({ participants = [], ...sharedFields }) => {
+  const shared = validateSharedFields({
+    ...sharedFields,
+    event: 'MICHOUI',
+  })
+  if (shared.error) {
+    return shared
+  }
+
+  if (!Array.isArray(participants) || participants.length === 0) {
+    return { error: 'missing_participants' }
+  }
+
+  const data = []
+  for (const participant of participants) {
+    const nom = participant?.nom ? String(participant.nom).trim() : ''
+    const prenom = participant?.prenom ? String(participant.prenom).trim() : ''
+    const tarif = participant?.tarif
+
+    if (!nom || !prenom || !VALID_TARIFS.includes(tarif)) {
+      return { error: 'invalid_mechoui_participant' }
+    }
+
+    data.push({
+      ...shared.data,
+      nom,
+      prenom,
+      tarif,
+    })
+  }
+
+  return { data }
+}
+
 app.get('/api/inscriptions', requireAuth, async (req, res) => {
   const event = req.query.event
   const where = {}
   if (event) {
-    if (event !== 'MICHOUI' && event !== 'VIDE_GRENIER') {
+    if (!VALID_EVENTS.includes(event)) {
       return res.status(400).json({ error: 'invalid_event' })
     }
     where.event = event
@@ -148,7 +248,7 @@ app.get('/api/inscriptions', requireAuth, async (req, res) => {
 
   const entries = await prisma.inscription.findMany({
     where,
-    orderBy: { createdAt: 'desc' },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
   })
 
   return res.json(entries)
