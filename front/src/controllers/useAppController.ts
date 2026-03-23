@@ -43,7 +43,7 @@ export function useAppController() {
   }, [])
 
   useEffect(() => {
-    if (view === 'admin' && !isAdminAuthed) {
+    if ((view === 'admin' || view === 'admin-newsletter') && !isAdminAuthed) {
       setView('admin-login')
       window.history.pushState({}, '', getPathFromView('admin-login'))
     }
@@ -152,7 +152,11 @@ export function useAppController() {
 
   const setViewWithRoute = useCallback((nextView: View) => {
     setView(nextView)
-    if (nextView === 'admin' || nextView === 'admin-login') {
+    if (
+      nextView === 'admin' ||
+      nextView === 'admin-login' ||
+      nextView === 'admin-newsletter'
+    ) {
       window.history.pushState({}, '', getPathFromView(nextView))
       return
     }
@@ -185,6 +189,10 @@ export function useAppController() {
       }
       if (target === 'admin') {
         setViewWithRoute('admin')
+        return
+      }
+      if (target === 'admin-newsletter') {
+        setViewWithRoute('admin-newsletter')
         return
       }
 
@@ -230,5 +238,6 @@ export function useAppController() {
     handleDeleteRegistration,
     pendingIds,
     adminErrorMessage,
+    adminToken: token,
   }
 }

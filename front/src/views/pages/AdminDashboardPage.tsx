@@ -4,6 +4,7 @@ import AdminTable from '../components/AdminTable'
 
 type AdminDashboardPageProps = {
   onLogout: () => void
+  onNavigateNewsletter: () => void
   mechoui: Registration[]
   videGrenier: Registration[]
   onSave: (id: number, payload: RegistrationUpdatePayload) => Promise<void>
@@ -14,6 +15,7 @@ type AdminDashboardPageProps = {
 
 function AdminDashboardPage({
   onLogout,
+  onNavigateNewsletter,
   mechoui,
   videGrenier,
   onSave,
@@ -44,13 +46,22 @@ function AdminDashboardPage({
             Tableau de bord des inscriptions
           </h2>
         </div>
-        <button
-          type="button"
-          onClick={onLogout}
-          className="rounded-xl border border-slate-200/40 bg-transparent px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100 transition hover:bg-slate-100 hover:text-slate-900"
-        >
-          Se deconnecter
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={onNavigateNewsletter}
+            className="rounded-xl border border-slate-200/40 bg-slate-100 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-900 transition hover:bg-white"
+          >
+            Publier une newsletter
+          </button>
+          <button
+            type="button"
+            onClick={onLogout}
+            className="rounded-xl border border-slate-200/40 bg-transparent px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100 transition hover:bg-slate-100 hover:text-slate-900"
+          >
+            Se deconnecter
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6">

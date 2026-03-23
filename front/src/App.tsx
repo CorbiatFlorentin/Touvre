@@ -4,6 +4,7 @@ import MainSections from './views/components/MainSections'
 import { useAppController } from './controllers/useAppController'
 import AdminDashboardPage from './views/pages/AdminDashboardPage'
 import AdminLoginPage from './views/pages/AdminLoginPage'
+import AdminNewsletterPage from './views/pages/AdminNewsletterPage'
 import AssociationPage from './views/pages/AssociationPage'
 import EventRegistrationPage from './views/pages/EventRegistrationPage'
 import EventsPage from './views/pages/EventsPage'
@@ -21,6 +22,7 @@ function App() {
     handleDeleteRegistration,
     pendingIds,
     adminErrorMessage,
+    adminToken,
   } = useAppController()
 
   return (
@@ -57,12 +59,20 @@ function App() {
       {view === 'admin' && (
         <AdminDashboardPage
           onLogout={handleAdminLogout}
+          onNavigateNewsletter={() => setViewWithRoute('admin-newsletter')}
           mechoui={mechouiRegistrations}
           videGrenier={videGrenierRegistrations}
           onSave={handleSaveRegistration}
           onDelete={handleDeleteRegistration}
           pendingIds={pendingIds}
           errorMessage={adminErrorMessage}
+        />
+      )}
+      {view === 'admin-newsletter' && (
+        <AdminNewsletterPage
+          onLogout={handleAdminLogout}
+          onBack={() => setViewWithRoute('admin')}
+          token={adminToken}
         />
       )}
     </div>

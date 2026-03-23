@@ -6,6 +6,7 @@ export type View =
   | 'inscription-mechoui'
   | 'admin-login'
   | 'admin'
+  | 'admin-newsletter'
 
 export type EventType = 'MICHOUI' | 'VIDE_GRENIER'
 export type MechouiTarif =
@@ -45,3 +46,13 @@ export type RegistrationUpdatePayload = {
 }
 
 export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error'
+
+export type NewsletterPayload = {
+  title: string
+  subject: string
+  summary: string
+  content: string
+  ctaLabel?: string
+  ctaUrl?: string
+  scheduledAt?: string | null
+}

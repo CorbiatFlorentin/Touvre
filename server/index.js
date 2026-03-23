@@ -26,6 +26,8 @@ const isValidEmail = (value) => {
 
 const VALID_EVENTS = ['MICHOUI', 'VIDE_GRENIER']
 const VALID_TARIFS = ['ADULTE', 'ENFANT_MOINS_12', 'ENFANT_MOINS_3']
+const newsletters = []
+let newsletterId = 1
 
 const requireAuth = (req, res, next) => {
   const header = req.headers.authorization || ''
@@ -236,6 +238,41 @@ const validateMechouiPayload = ({ participants = [], ...sharedFields }) => {
   return { data }
 }
 
+const validateNewsletterPayload = (payload = {}) => {
+  const title = payload.title ? String(payload.title).trim() : ''
+  const subject = payload.subject ? String(payload.subject).trim() : ''
+  const summary = payload.summary ? String(payload.summary).trim() : ''
+  const content = payload.content ? String(payload.content).trim() : ''
+  const ctaLabel = payload.ctaLabel ? String(payload.ctaLabel).trim() : ''
+  const ctaUrl = payload.ctaUrl ? String(payload.ctaUrl).trim() : ''
+  const scheduledAt = payload.scheduledAt ? String(payload.scheduledAt).trim() : ''
+
+  if (!title || !subject || !summary || !content) {
+    return { error: 'missing_fields' }
+  }
+
+  let scheduledValue = null
+  if (scheduledAt) {
+    const parsed = Date.parse(scheduledAt)
+    if (Number.isNaN(parsed)) {
+      return { error: 'invalid_scheduled_at' }
+    }
+    scheduledValue = new Date(parsed).toISOString()
+  }
+
+  return {
+    data: {
+      title,
+      subject,
+      summary,
+      content,
+      ctaLabel: ctaLabel || null,
+      ctaUrl: ctaUrl || null,
+      scheduledAt: scheduledValue,
+    },
+  }
+}
+
 app.get('/api/inscriptions', requireAuth, async (req, res) => {
   const event = req.query.event
   const where = {}
@@ -296,6 +333,21 @@ app.delete('/api/inscriptions/:id', requireAuth, async (req, res) => {
     }
     return res.status(500).json({ error: 'server_error' })
   }
+})
+
+app.post('/api/newsletters', requireAuth, (req, res) => {
+  const validated = validateNewsletterPayload(req.body || {})
+  if (validated.error) {
+    return res.status(400).json({ error: validated.error })
+  }
+
+  const created = {
+    id: newsletterId++,
+    ...validated.data,
+    createdAt: new Date().toISOString(),
+  }
+  newsletters.unshift(created)
+  return res.status(201).json(created)
 })
 
 app.listen(PORT, () => {

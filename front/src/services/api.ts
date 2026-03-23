@@ -3,6 +3,7 @@ import type {
   MechouiParticipantInput,
   Registration,
   RegistrationUpdatePayload,
+  NewsletterPayload,
 } from '../models/app'
 
 const API_BASE =
@@ -68,6 +69,20 @@ export async function deleteRegistration(
     headers: {
       Authorization: `Bearer ${authToken}`,
     },
+  })
+}
+
+export async function publishNewsletter(
+  payload: NewsletterPayload,
+  authToken: string
+): Promise<Response> {
+  return fetch(`${API_BASE}/api/newsletters`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(payload),
   })
 }
 

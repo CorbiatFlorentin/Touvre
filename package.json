@@ -3,14 +3,14 @@
     "version": "1.0.0",
     "description": "",
     "main": "index.js",
-  "scripts": {
-    "dev": "node server/index.js",
-    "start": "node server/index.js",
-    "admin:create": "node server/create-admin.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev --name init",
-    "prisma:studio": "prisma studio"
-  },
+    "scripts": {
+        "dev": "node server/index.js",
+        "start": "node server/index.js",
+        "admin:create": "node server/create-admin.js",
+        "prisma:generate": "prisma generate",
+        "prisma:migrate": "prisma migrate dev --name init",
+        "prisma:studio": "prisma studio"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/CorbiatFlorentin/Touvre.git"
@@ -23,14 +23,14 @@
     },
     "homepage": "https://github.com/CorbiatFlorentin/Touvre#readme",
     "devDependencies": {
-        "prisma": "^6.18.0"
+        "prisma": "^6.12.0"
     },
-  "dependencies": {
-    "@prisma/client": "^6.18.0",
-    "bcryptjs": "^2.4.3",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.21.2",
-    "jsonwebtoken": "^9.0.2"
-  }
+    "dependencies": {
+        "@prisma/client": "^6.18.0",
+        "bcryptjs": "^2.4.3",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.21.2",
+        "jsonwebtoken": "^9.0.2"
+    }
 }
