@@ -66,5 +66,5 @@ jobs:
         run: npx prisma validate
 
       # Optionnel: vérifier que le serveur démarre (sans le laisser tourner)
-      - name: Server syntax check (optional)
-        run: node -e "require('./server/index.js'); console.log('server entry ok')"
+      - name: Server syntax check
+        run: node --check server/index.js
