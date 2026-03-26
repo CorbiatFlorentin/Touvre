@@ -5,6 +5,7 @@ import AdminTable from '../components/AdminTable'
 type AdminDashboardPageProps = {
   onLogout: () => void
   onNavigateNewsletter: () => void
+  onNavigateAssociation: () => void
   mechoui: Registration[]
   videGrenier: Registration[]
   onSave: (id: number, payload: RegistrationUpdatePayload) => Promise<void>
@@ -16,6 +17,7 @@ type AdminDashboardPageProps = {
 function AdminDashboardPage({
   onLogout,
   onNavigateNewsletter,
+  onNavigateAssociation,
   mechoui,
   videGrenier,
   onSave,
@@ -53,6 +55,13 @@ function AdminDashboardPage({
             className="rounded-xl border border-slate-200/40 bg-slate-100 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-900 transition hover:bg-white"
           >
             Publier une newsletter
+          </button>
+          <button
+            type="button"
+            onClick={onNavigateAssociation}
+            className="rounded-xl border border-slate-200/40 bg-slate-100 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-900 transition hover:bg-white"
+          >
+            Editer l'association
           </button>
           <button
             type="button"

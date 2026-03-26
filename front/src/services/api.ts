@@ -1,6 +1,9 @@
 import type {
+  AssociationContent,
+  AssociationContentPayload,
   EventType,
   MechouiParticipantInput,
+  Newsletter,
   Registration,
   RegistrationUpdatePayload,
   NewsletterPayload,
@@ -86,6 +89,28 @@ export async function publishNewsletter(
   })
 }
 
+export async function fetchNewsletters(): Promise<Response> {
+  return fetch(`${API_BASE}/api/newsletters`)
+}
+
+export async function fetchAssociationContent(): Promise<Response> {
+  return fetch(`${API_BASE}/api/association-content`)
+}
+
+export async function saveAssociationContent(
+  payload: AssociationContentPayload,
+  authToken: string
+): Promise<Response> {
+  return fetch(`${API_BASE}/api/association-content`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+    body: JSON.stringify(payload),
+  })
+}
+
 export async function parseRegistration(response: Response): Promise<Registration> {
   return response.json()
 }
@@ -93,5 +118,17 @@ export async function parseRegistration(response: Response): Promise<Registratio
 export async function parseRegistrations(
   response: Response
 ): Promise<Registration[]> {
+  return response.json()
+}
+
+export async function parseNewsletters(
+  response: Response
+): Promise<Newsletter[]> {
+  return response.json()
+}
+
+export async function parseAssociationContent(
+  response: Response
+): Promise<AssociationContent> {
   return response.json()
 }

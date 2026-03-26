@@ -7,6 +7,7 @@ export type View =
   | 'admin-login'
   | 'admin'
   | 'admin-newsletter'
+  | 'admin-association'
 
 export type EventType = 'MICHOUI' | 'VIDE_GRENIER'
 export type MechouiTarif =
@@ -49,10 +50,32 @@ export type AsyncStatus = 'idle' | 'loading' | 'success' | 'error'
 
 export type NewsletterPayload = {
   title: string
-  subject: string
-  summary: string
   content: string
-  ctaLabel?: string
-  ctaUrl?: string
-  scheduledAt?: string | null
+  publishedAt: string
+  images: string[]
+}
+
+export type Newsletter = NewsletterPayload & {
+  id: number
+  createdAt: string
+}
+
+export type AssociationMemberInput = {
+  name: string
+  imageDataUrl: string
+}
+
+export type AssociationContentPayload = {
+  body: string
+  members: AssociationMemberInput[]
+}
+
+export type AssociationMember = AssociationMemberInput & {
+  id: number
+}
+
+export type AssociationContent = {
+  body: string
+  members: AssociationMember[]
+  updatedAt: string
 }

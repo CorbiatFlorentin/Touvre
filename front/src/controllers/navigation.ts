@@ -7,6 +7,9 @@ export function getViewFromPath(path: string): View {
   if (path === '/admin/newsletter') {
     return 'admin-newsletter'
   }
+  if (path === '/admin/association') {
+    return 'admin-association'
+  }
   if (path === '/admin/connexion') {
     return 'admin-login'
   }
@@ -19,6 +22,9 @@ export function getPathFromView(view: View) {
   }
   if (view === 'admin-newsletter') {
     return '/admin/newsletter'
+  }
+  if (view === 'admin-association') {
+    return '/admin/association'
   }
   if (view === 'admin-login') {
     return '/admin/connexion'

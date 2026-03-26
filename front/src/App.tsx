@@ -3,6 +3,7 @@ import Header from './views/components/Header'
 import MainSections from './views/components/MainSections'
 import { useAppController } from './controllers/useAppController'
 import AdminDashboardPage from './views/pages/AdminDashboardPage'
+import AdminAssociationPage from './views/pages/AdminAssociationPage'
 import AdminLoginPage from './views/pages/AdminLoginPage'
 import AdminNewsletterPage from './views/pages/AdminNewsletterPage'
 import AssociationPage from './views/pages/AssociationPage'
@@ -23,6 +24,8 @@ function App() {
     pendingIds,
     adminErrorMessage,
     adminToken,
+    newsletters,
+    refreshNewsletters,
   } = useAppController()
 
   return (
@@ -30,7 +33,7 @@ function App() {
       <Header onNavigate={handleNavigate} />
       {view === 'home' && (
         <>
-          <MainSections />
+          <MainSections newsletters={newsletters} />
           <Footer />
         </>
       )}
@@ -60,6 +63,7 @@ function App() {
         <AdminDashboardPage
           onLogout={handleAdminLogout}
           onNavigateNewsletter={() => setViewWithRoute('admin-newsletter')}
+          onNavigateAssociation={() => setViewWithRoute('admin-association')}
           mechoui={mechouiRegistrations}
           videGrenier={videGrenierRegistrations}
           onSave={handleSaveRegistration}
@@ -70,6 +74,14 @@ function App() {
       )}
       {view === 'admin-newsletter' && (
         <AdminNewsletterPage
+          onLogout={handleAdminLogout}
+          onBack={() => setViewWithRoute('admin')}
+          token={adminToken}
+          onPublished={refreshNewsletters}
+        />
+      )}
+      {view === 'admin-association' && (
+        <AdminAssociationPage
           onLogout={handleAdminLogout}
           onBack={() => setViewWithRoute('admin')}
           token={adminToken}

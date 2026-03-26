@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 import type {
+  Newsletter,
   Registration,
   RegistrationUpdatePayload,
   View,
 } from '../models/app'
 import {
+  fetchNewsletters,
   deleteRegistration,
+  parseNewsletters,
   fetchRegistrationsByEvent,
   parseRegistration,
   parseRegistrations,
@@ -28,6 +31,7 @@ export function useAppController() {
   const [videGrenierRegistrations, setVideGrenierRegistrations] = useState<
     Registration[]
   >([])
+  const [newsletters, setNewsletters] = useState<Newsletter[]>([])
   const [pendingIds, setPendingIds] = useState<number[]>([])
   const [adminErrorMessage, setAdminErrorMessage] = useState('')
 
@@ -43,7 +47,12 @@ export function useAppController() {
   }, [])
 
   useEffect(() => {
-    if ((view === 'admin' || view === 'admin-newsletter') && !isAdminAuthed) {
+    if (
+      (view === 'admin' ||
+        view === 'admin-newsletter' ||
+        view === 'admin-association') &&
+      !isAdminAuthed
+    ) {
       setView('admin-login')
       window.history.pushState({}, '', getPathFromView('admin-login'))
     }
@@ -52,6 +61,20 @@ export function useAppController() {
   useEffect(() => {
     setIsAdminAuthed(Boolean(token))
   }, [token])
+
+  const loadNewsletters = useCallback(async () => {
+    try {
+      const response = await fetchNewsletters()
+      if (!response.ok) {
+        return
+      }
+
+      const data = await parseNewsletters(response)
+      setNewsletters(data.slice(0, 3))
+    } catch (_error) {
+      // Keep current state if the public feed cannot be loaded.
+    }
+  }, [])
 
   const fetchRegistrations = useCallback(async (authToken: string) => {
     setAdminErrorMessage('')
@@ -150,12 +173,17 @@ export function useAppController() {
     }
   }, [fetchRegistrations, token, view])
 
+  useEffect(() => {
+    loadNewsletters()
+  }, [loadNewsletters])
+
   const setViewWithRoute = useCallback((nextView: View) => {
     setView(nextView)
     if (
       nextView === 'admin' ||
       nextView === 'admin-login' ||
-      nextView === 'admin-newsletter'
+      nextView === 'admin-newsletter' ||
+      nextView === 'admin-association'
     ) {
       window.history.pushState({}, '', getPathFromView(nextView))
       return
@@ -193,6 +221,10 @@ export function useAppController() {
       }
       if (target === 'admin-newsletter') {
         setViewWithRoute('admin-newsletter')
+        return
+      }
+      if (target === 'admin-association') {
+        setViewWithRoute('admin-association')
         return
       }
 
@@ -239,5 +271,7 @@ export function useAppController() {
     pendingIds,
     adminErrorMessage,
     adminToken: token,
+    newsletters,
+    refreshNewsletters: loadNewsletters,
   }
 }

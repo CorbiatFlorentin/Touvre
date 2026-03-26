@@ -45,3 +45,35 @@ model Admin {
 
   @@map("admin")
 }
+
+model Newsletter {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  publishedAt DateTime @map("published_at")
+  imagesJson  String   @map("images_json")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("newsletter")
+}
+
+model AssociationContent {
+  id          Int      @id
+  body        String
+  updatedAt   DateTime @default(now()) @map("updated_at")
+  members     AssociationMember[]
+
+  @@map("association_content")
+}
+
+model AssociationMember {
+  id            Int                @id @default(autoincrement())
+  associationId Int                @map("association_id")
+  name          String
+  imageDataUrl  String             @map("image_data_url")
+  sortOrder     Int                @default(0) @map("sort_order")
+  association   AssociationContent @relation(fields: [associationId], references: [id], onDelete: Cascade)
+
+  @@index([associationId, sortOrder])
+  @@map("association_member")
+}

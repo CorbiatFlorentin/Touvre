@@ -18,7 +18,7 @@ if (!JWT_SECRET) {
 }
 
 app.use(cors({ origin: ['http://localhost:5173'], credentials: true }))
-app.use(express.json())
+app.use(express.json({ limit: '25mb' }))
 
 const isValidEmail = (value) => {
   return typeof value === 'string' && value.includes('@') && value.includes('.')
@@ -26,8 +26,9 @@ const isValidEmail = (value) => {
 
 const VALID_EVENTS = ['MICHOUI', 'VIDE_GRENIER']
 const VALID_TARIFS = ['ADULTE', 'ENFANT_MOINS_12', 'ENFANT_MOINS_3']
-const newsletters = []
-let newsletterId = 1
+
+const MAX_IMAGE_COUNT = 8
+const MAX_MEMBER_COUNT = 20
 
 const requireAuth = (req, res, next) => {
   const header = req.headers.authorization || ''
@@ -238,37 +239,98 @@ const validateMechouiPayload = ({ participants = [], ...sharedFields }) => {
   return { data }
 }
 
-const validateNewsletterPayload = (payload = {}) => {
-  const title = payload.title ? String(payload.title).trim() : ''
-  const subject = payload.subject ? String(payload.subject).trim() : ''
-  const summary = payload.summary ? String(payload.summary).trim() : ''
-  const content = payload.content ? String(payload.content).trim() : ''
-  const ctaLabel = payload.ctaLabel ? String(payload.ctaLabel).trim() : ''
-  const ctaUrl = payload.ctaUrl ? String(payload.ctaUrl).trim() : ''
-  const scheduledAt = payload.scheduledAt ? String(payload.scheduledAt).trim() : ''
+const isValidImageDataUrl = (value) => {
+  return (
+    typeof value === 'string' &&
+    /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(value) &&
+    value.length <= 5_000_000
+  )
+}
 
-  if (!title || !subject || !summary || !content) {
-    return { error: 'missing_fields' }
+const parseImages = (images) => {
+  if (!Array.isArray(images) || images.length === 0) {
+    return { error: 'missing_images' }
+  }
+  if (images.length > MAX_IMAGE_COUNT) {
+    return { error: 'too_many_images' }
   }
 
-  let scheduledValue = null
-  if (scheduledAt) {
-    const parsed = Date.parse(scheduledAt)
-    if (Number.isNaN(parsed)) {
-      return { error: 'invalid_scheduled_at' }
-    }
-    scheduledValue = new Date(parsed).toISOString()
+  const normalized = images
+    .map((image) => (typeof image === 'string' ? image.trim() : ''))
+    .filter(Boolean)
+
+  if (normalized.length === 0 || normalized.some((image) => !isValidImageDataUrl(image))) {
+    return { error: 'invalid_images' }
+  }
+
+  return { data: normalized }
+}
+
+const validateNewsletterPayload = (payload = {}) => {
+  const title = payload.title ? String(payload.title).trim() : ''
+  const content = payload.content ? String(payload.content).trim() : ''
+  const publishedAt = payload.publishedAt ? String(payload.publishedAt).trim() : ''
+  const images = parseImages(payload.images)
+
+  if (!title || !content || !publishedAt) {
+    return { error: 'missing_fields' }
+  }
+  if (images.error) {
+    return images
+  }
+
+  const parsed = Date.parse(publishedAt)
+  if (Number.isNaN(parsed)) {
+    return { error: 'invalid_published_at' }
   }
 
   return {
     data: {
       title,
-      subject,
-      summary,
       content,
-      ctaLabel: ctaLabel || null,
-      ctaUrl: ctaUrl || null,
-      scheduledAt: scheduledValue,
+      publishedAt: new Date(parsed).toISOString(),
+      images: images.data,
+    },
+  }
+}
+
+const validateAssociationPayload = (payload = {}) => {
+  const body = payload.body ? String(payload.body).trim() : ''
+  const rawMembers = Array.isArray(payload.members) ? payload.members : []
+
+  if (!body) {
+    return { error: 'missing_fields' }
+  }
+  if (rawMembers.length === 0) {
+    return { error: 'missing_members' }
+  }
+  if (rawMembers.length > MAX_MEMBER_COUNT) {
+    return { error: 'too_many_members' }
+  }
+
+  const members = []
+  for (const [index, member] of rawMembers.entries()) {
+    const name = member?.name ? String(member.name).trim() : ''
+    const imageDataUrl =
+      member?.imageDataUrl && typeof member.imageDataUrl === 'string'
+        ? member.imageDataUrl.trim()
+        : ''
+
+    if (!name || !isValidImageDataUrl(imageDataUrl)) {
+      return { error: 'invalid_member' }
+    }
+
+    members.push({
+      name,
+      imageDataUrl,
+      sortOrder: index,
+    })
+  }
+
+  return {
+    data: {
+      body,
+      members,
     },
   }
 }
@@ -335,19 +397,118 @@ app.delete('/api/inscriptions/:id', requireAuth, async (req, res) => {
   }
 })
 
-app.post('/api/newsletters', requireAuth, (req, res) => {
+app.get('/api/newsletters', async (_req, res) => {
+  const items = await prisma.newsletter.findMany({
+    orderBy: [{ publishedAt: 'desc' }, { id: 'desc' }],
+  })
+
+  return res.json(
+    items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      content: item.content,
+      publishedAt: item.publishedAt,
+      images: JSON.parse(item.imagesJson),
+      createdAt: item.createdAt,
+    }))
+  )
+})
+
+app.post('/api/newsletters', requireAuth, async (req, res) => {
   const validated = validateNewsletterPayload(req.body || {})
   if (validated.error) {
     return res.status(400).json({ error: validated.error })
   }
 
-  const created = {
-    id: newsletterId++,
-    ...validated.data,
-    createdAt: new Date().toISOString(),
-  }
-  newsletters.unshift(created)
+  const created = await prisma.newsletter.create({
+    data: {
+      title: validated.data.title,
+      content: validated.data.content,
+      publishedAt: new Date(validated.data.publishedAt),
+      imagesJson: JSON.stringify(validated.data.images),
+    },
+  })
+
   return res.status(201).json(created)
+})
+
+app.get('/api/association-content', async (_req, res) => {
+  const content = await prisma.associationContent.findUnique({
+    where: { id: 1 },
+    include: {
+      members: {
+        orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+      },
+    },
+  })
+
+  if (!content) {
+    return res.json({ body: '', members: [] })
+  }
+
+  return res.json({
+    body: content.body,
+    updatedAt: content.updatedAt,
+    members: content.members.map((member) => ({
+      id: member.id,
+      name: member.name,
+      imageDataUrl: member.imageDataUrl,
+    })),
+  })
+})
+
+app.put('/api/association-content', requireAuth, async (req, res) => {
+  const validated = validateAssociationPayload(req.body || {})
+  if (validated.error) {
+    return res.status(400).json({ error: validated.error })
+  }
+
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.associationContent.upsert({
+      where: { id: 1 },
+      update: {
+        body: validated.data.body,
+        updatedAt: new Date(),
+      },
+      create: {
+        id: 1,
+        body: validated.data.body,
+        updatedAt: new Date(),
+      },
+    })
+
+    await tx.associationMember.deleteMany({
+      where: { associationId: 1 },
+    })
+
+    await tx.associationMember.createMany({
+      data: validated.data.members.map((member) => ({
+        associationId: 1,
+        name: member.name,
+        imageDataUrl: member.imageDataUrl,
+        sortOrder: member.sortOrder,
+      })),
+    })
+
+    return tx.associationContent.findUnique({
+      where: { id: 1 },
+      include: {
+        members: {
+          orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
+        },
+      },
+    })
+  })
+
+  return res.json({
+    body: updated.body,
+    updatedAt: updated.updatedAt,
+    members: updated.members.map((member) => ({
+      id: member.id,
+      name: member.name,
+      imageDataUrl: member.imageDataUrl,
+    })),
+  })
 })
 
 app.listen(PORT, () => {
