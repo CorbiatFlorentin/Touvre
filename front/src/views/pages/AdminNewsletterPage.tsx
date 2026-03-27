@@ -57,7 +57,7 @@ function AdminNewsletterPage({
         images,
       }))
       setErrorMessage('')
-    } catch (_error) {
+    } catch {
       setErrorMessage("Impossible de preparer les photos selectionnees.")
     }
   }
@@ -88,7 +88,7 @@ function AdminNewsletterPage({
 
       setStatus('success')
       await onPublished()
-    } catch (error) {
+    } catch {
       setErrorMessage("Erreur reseau. Verifiez l'API.")
       setStatus('error')
     }

@@ -29,7 +29,7 @@ function AssociationPage() {
         if (isMounted) {
           setContent(data)
         }
-      } catch (_error) {
+      } catch {
         // Keep the fallback state.
       }
     }
@@ -41,18 +41,9 @@ function AssociationPage() {
     }
   }, [])
 
-  useEffect(() => {
-    if (content.members.length === 0) {
-      setActiveIndex(0)
-      return
-    }
-
-    setActiveIndex((current) =>
-      current >= content.members.length ? 0 : current
-    )
-  }, [content.members.length])
-
-  const activeMember = content.members[activeIndex] ?? null
+  const memberCount = content.members.length
+  const safeIndex = memberCount === 0 ? 0 : Math.min(activeIndex, memberCount - 1)
+  const activeMember = content.members[safeIndex] ?? null
 
   return (
     <main className="mx-auto w-full max-w-6xl px-6 pb-20 pt-20">
@@ -108,8 +99,8 @@ function AssociationPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setActiveIndex((current) =>
-                      current === 0 ? content.members.length - 1 : current - 1
+                    setActiveIndex(() =>
+                      safeIndex === 0 ? memberCount - 1 : safeIndex - 1
                     )
                   }
                   className="rounded-xl border border-slate-200/30 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100 transition hover:bg-slate-100 hover:text-slate-900"
@@ -119,8 +110,8 @@ function AssociationPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setActiveIndex((current) =>
-                      current === content.members.length - 1 ? 0 : current + 1
+                    setActiveIndex(() =>
+                      safeIndex === memberCount - 1 ? 0 : safeIndex + 1
                     )
                   }
                   className="rounded-xl border border-slate-200/30 px-5 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-100 transition hover:bg-slate-100 hover:text-slate-900"
@@ -129,7 +120,7 @@ function AssociationPage() {
                 </button>
               </div>
               <p className="text-xs uppercase tracking-[0.25em] text-slate-300/70">
-                {activeIndex + 1} / {content.members.length}
+                {safeIndex + 1} / {content.members.length}
               </p>
             </div>
 
@@ -140,7 +131,7 @@ function AssociationPage() {
                   type="button"
                   onClick={() => setActiveIndex(index)}
                   className={`overflow-hidden rounded-2xl border text-left transition ${
-                    index === activeIndex
+                    index === safeIndex
                       ? 'border-slate-100'
                       : 'border-slate-200/10'
                   }`}

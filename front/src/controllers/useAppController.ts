@@ -71,7 +71,7 @@ export function useAppController() {
 
       const data = await parseNewsletters(response)
       setNewsletters(data.slice(0, 3))
-    } catch (_error) {
+    } catch {
       // Keep current state if the public feed cannot be loaded.
     }
   }, [])

@@ -54,7 +54,7 @@ function AdminAssociationPage({
           body: data.body,
           members: data.members.length > 0 ? data.members : [emptyMember()],
         })
-      } catch (_error) {
+      } catch {
         // Keep editable defaults.
       }
     }
@@ -101,7 +101,7 @@ function AdminAssociationPage({
         const imageDataUrl = await optimizeImageFile(file)
         updateMember(index, 'imageDataUrl', imageDataUrl)
         setErrorMessage('')
-      } catch (_error) {
+      } catch {
         setErrorMessage("Impossible de preparer la photo selectionnee.")
       }
     }
@@ -128,7 +128,7 @@ function AdminAssociationPage({
       }
 
       setStatus('success')
-    } catch (_error) {
+    } catch {
       setErrorMessage("Erreur reseau. Verifiez l'API.")
       setStatus('error')
     }
